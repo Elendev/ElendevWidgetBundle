@@ -1,0 +1,9 @@
+services:
+    elendev.widget.widget_repository:
+        class: Elendev\WidgetBundle\Widget\WidgetRepository
+        
+    elendev.widget.twig_extension:
+        class: Elendev\WidgetBundle\Twig\Extension\WidgetExtension
+        arguments: ["@elendev.widget.widget_repository"]
+        tags:
+            - { name: twig.extension }
