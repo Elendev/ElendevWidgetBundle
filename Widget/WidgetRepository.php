@@ -40,6 +40,9 @@ class WidgetRepository {
     
     
     public function getWidgets($tag){
+    	if(!array_key_exists($tag, $this->widgets)){
+    		return array();
+    	}
         return $this->widgets[$tag];
     }
 }
