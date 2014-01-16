@@ -8,6 +8,14 @@ Installation
 The ElendevWidgetBundle is available through composer.
 You just have to add elendev/widget-bundle into your composer.json.
 
+Configuration
+-------------
+	elendev_widget:
+    	enable_annotations:   true # false : disable annotation support
+    	scan_services:        true # false : don't check annotations on services
+    	scan_widget_directory:  true # false : don't scan Widget directory
+    	widget_directory:     'Widget' # name of the widget directory at bundle's root
+
 Register a new widget
 ---------------------
 A widget is a service method returning simple HTML code.
@@ -16,6 +24,21 @@ You only have to tag your service method with :
     tags:
             - {name: elendev.widget, tag: your_tagname, method: method_name, priority: optional_integer_priority}
 
+Annotations are also available, you can annotate any method of a service or of a class in `widget_directory` sub-directory.
+
+	namespace Acme\DemoBundle\Widget;
+	use Elendev\WidgetBundle\Annotation\Widget;
+	
+	class MyTestWidget {
+		/**
+	 	* @Widget(tag="main", priority=99)
+	 	*/
+		public function myYoupiWidget(){
+			return "This is a simple widget";
+		}
+	}
+
+The value of widget is by default the tag value.
 
 Use Twig's extension widget method
 ---------------------------------

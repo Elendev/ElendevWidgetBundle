@@ -20,9 +20,21 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('elendev_widget');
 
-        // Here you should define the parameters that are allowed to
-        // configure your bundle. See the documentation linked above for
-        // more information on that topic.
+        $rootNode
+        	->children()
+        		->booleanNode('enable_annotations')
+        			->defaultTrue()
+        		->end()
+        		->booleanNode('scan_services')
+        			->defaultTrue()
+        		->end()
+        		->booleanNode('scan_widget_directory')
+        			->defaultTrue()
+        		->end()
+        		->scalarNode('widget_directory')
+        			->defaultValue('Widget')
+        		->end()
+        	->end();
 
         return $treeBuilder;
     }
