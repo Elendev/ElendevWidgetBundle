@@ -38,7 +38,7 @@ Annotations are also available, you can annotate any method of a service or of a
 		}
 	}
 
-The value of widget is by default the tag value.
+The value of widget is by default the tag value. Widgets in `widget_directory` sub-directory are instanciated as services and support the `ContainerAwareInterface` interface (container is automatically injected).
 
 Use Twig's extension widget method
 ---------------------------------
