@@ -25,23 +25,22 @@ class WidgetsLoaderPass implements CompilerPassInterface {
         
         $definition = $container->getDefinition("elendev.widget.widget_repository");
         
-        $this->processTaggedServices($container, $definition);
-        
         $isAnnotationSupportEnabled = $container->getParameter('elendev.widget.annotation.enabled');
         $scanServices = $container->getParameter('elendev.widget.annotation.services.scan');
         $scanWidgetDirectory = $container->getParameter('elendev.widget.annotation.widget_directory.scan');
         
         if($isAnnotationSupportEnabled) {
         	$reader = new AnnotationReader();
-        	if($scanWidgetDirectory && $this->kernel){
-        		$this->processWidgetDirectory($container, $reader, $definition, !$scanServices);
-        	}
         	
         	if($scanServices){
-        		$this->processWidgetServices($container, $reader, $definition);
+        		$this->tagWidgetServices($container, $reader);
+        	}
+        	
+        	if($scanWidgetDirectory && $this->kernel){
+        		$this->tagWidgetDirectory($container, $reader);
         	}
         }
-        
+        $this->processTaggedServices($container, $definition);
     }
     
     /**
@@ -66,12 +65,11 @@ class WidgetsLoaderPass implements CompilerPassInterface {
     
     /**
      * Pass through widget directory to find Widget annotations
-     * NEED TO BE FOLLOWED BY processWidgetServices !
      * @param ContainerBuilder $container
      * @param AnnotationReader $reader
      * @param Definition $definition
      */
-    private function processWidgetDirectory(ContainerBuilder $container, AnnotationReader $reader, Definition $definition, $addToDefinition = false) {
+    private function tagWidgetDirectory(ContainerBuilder $container, AnnotationReader $reader) {
     	
     	$widgetDirectory = $container->getParameter('elendev.widget.widget_directory');
     	
@@ -105,11 +103,19 @@ class WidgetsLoaderPass implements CompilerPassInterface {
     					if(!$serviceClassDefinition){
     						$serviceClassDefinition = new Definition($className);
     						$container->setDefinition($serviceClassId, $serviceClassDefinition);
+    							
+    							
+    						if($reflectionClass->implementsInterface('Symfony\\Component\\DependencyInjection\\ContainerAwareInterface')) {
+    							$serviceClassDefinition->addMethodCall('setContainer', array(new Reference('service_container')));
+    						}
     					}
     					
-    					if($addToDefinition) {
-    						$this->processService($container, $reader, $definition, $serviceClassId);
-    					}
+    					$serviceClassDefinition->addTag('elendev.widget', array(
+    							'method' => $reflectionMethod->getShortName(),
+	    						'tag' => $annotation->getTag(),
+	    						'priority' => $annotation->getPriority()
+    						)
+    					);
     				}
     			}
     			
@@ -123,52 +129,40 @@ class WidgetsLoaderPass implements CompilerPassInterface {
      * @param AnnotationReader $reader
      * @param Definition $definition
      */
-    private function processWidgetServices(ContainerBuilder $container, AnnotationReader $reader, Definition $definition){
+    private function tagWidgetServices(ContainerBuilder $container, AnnotationReader $reader){
     	foreach($container->getServiceIds() as $serviceId){
     		if(!$container->hasDefinition($serviceId)){
     			continue;
     		}
     		
-    		$this->processService($container, $reader, $definition, $serviceId);
-    	}
-    }
-    
-    /**
-     * Process the given serviceId and add it to the widget manager
-     * @param ContainerBuilder $container
-     * @param AnnotationReader $reader
-     * @param Definition $definition
-     * @param unknown $serviceId
-     */
-    private function processService(ContainerBuilder $container, AnnotationReader $reader, Definition $definition, $serviceId){
-    	$serviceDefinition = $container->getDefinition($serviceId);
-    		
-    	$serviceClass = $serviceDefinition->getClass();
-    	if(strlen($serviceClass) <= 0){
-    		return;
-    	}
-    	
-    	//get real class name when it's a parameter
-    	if(substr($serviceClass, 0, 1) === '%') {
-    		$serviceClass = $container->getParameter(substr($serviceClass, 1, -1));
-    	}
-    	
-    	if(!class_exists($serviceClass)){
-    		return;
-    	}
-    	
-	    $reflectionClass = new \ReflectionClass($serviceClass);
-	    
-	    foreach($reflectionClass->getMethods() as $reflectionMethod){
-	    	$annotation = $reader->getMethodAnnotation($reflectionMethod, 'Elendev\\WidgetBundle\\Annotation\\Widget');
-	    	if($annotation){
-	    		$definition->addMethodCall("registerWidget", array(
-	    				new Reference($serviceId),
-	    				$reflectionMethod->getShortName(),
-	    				$annotation->getTag(),
-	    				$annotation->getPriority()
-	    		));
+    	    $serviceDefinition = $container->getDefinition($serviceId);
+	    	$serviceClass = $serviceDefinition->getClass();
+	    	if(strlen($serviceClass) <= 0){
+	    		continue;
 	    	}
-	    }
+	    	
+	    	//get real class name when it's a parameter
+	    	if(substr($serviceClass, 0, 1) === '%') {
+	    		$serviceClass = $container->getParameter(substr($serviceClass, 1, -1));
+	    	}
+	    	
+	    	if(!class_exists($serviceClass)){
+	    		continue;
+	    	}
+	    	
+		    $reflectionClass = new \ReflectionClass($serviceClass);
+		    
+		    foreach($reflectionClass->getMethods() as $reflectionMethod){
+		    	$annotation = $reader->getMethodAnnotation($reflectionMethod, 'Elendev\\WidgetBundle\\Annotation\\Widget');
+		    	if($annotation){
+		    		$serviceDefinition->addTag('elendev.widget', array(
+		    				'method' => $reflectionMethod->getShortName(),
+		    				'tag' => $annotation->getTag(),
+		    				'priority' => $annotation->getPriority()
+		    			)
+		    		);
+		    	}
+		    }
+    	}
     }
 }
