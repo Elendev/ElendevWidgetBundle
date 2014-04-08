@@ -35,6 +35,7 @@ class Configuration implements ConfigurationInterface
         			->defaultValue('Widget')
         		->end()
                 ->arrayNode('hinclude')
+                    ->addDefaultsIfNotSet()
                     ->children()
                         ->enumNode('behavior')
                             ->values(array('default_disabled', 'force_disabled', 'default_enabled', 'force_enabled'))
