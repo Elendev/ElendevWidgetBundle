@@ -21,9 +21,12 @@ class WidgetController implements ContainerAwareInterface {
      */
     private $container;
 
-    public function getWidgetAction($widgetId){
+    public function getWidgetAction($widgetId, $args){
         $widget = $this->container->get('elendev.widget.widget_repository')->getWidget($widgetId);
-        $result = $widget->doCall();
+
+        array_unshift($args, $this->container->get('twig'));
+
+        $result = call_user_func_array(array($widget, "doCall"), $args);
 
         if($result instanceof Response){
             return $result;

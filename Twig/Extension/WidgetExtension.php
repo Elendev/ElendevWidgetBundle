@@ -10,11 +10,11 @@ class WidgetExtension extends \Twig_Extension
     
     private $widgetRepository;
     private $environment;
-    private $behavior;
+    private $force;
 
-    public function __construct(WidgetRepository $widgetRepository, $behavior){
+    public function __construct(WidgetRepository $widgetRepository, $force){
         $this->widgetRepository = $widgetRepository;
-        $this->behavior = $behavior;
+        $this->force = $force;
     }
 
 
@@ -27,36 +27,37 @@ class WidgetExtension extends \Twig_Extension
         return 'elendev_widget';
     }
     
-    public function displayWidgets($tag, $asynchronousInclude = null){
-        
+    public function displayWidgets($tag){
+
+        if($this->force == 'enabled') {
+            return $this->displayAsyncWidgets($tag, func_get_args());
+        }
+
         $args = func_get_args();
         array_shift($args);
         array_unshift($args, $this->environment);
         $widgetResults = array();
 
-        if($this->behavior == 'disabled'){
-            $asynchronousInclude = false;
-        } else if($this->behavior == 'enabled') {
-            $asynchronousInclude = true;
-        } else if($asynchronousInclude == null && $this->behavior == 'default_disabled'){
-            $asynchronousInclude = false;
-        } else if($asynchronousInclude == null && $this->behavior == 'default_enabled') {
-            $asynchronousInclude = true;
-        }
-
-        if(!$asynchronousInclude){
-            foreach($this->widgetRepository->getWidgets($tag) as $widget){
-                $result = call_user_func_array(array($widget, "doCall"), $args);
-                if($result instanceof Response){
-                    $result = $result->getContent();
-                }
-                $widgetResults[] = $result;
+        foreach($this->widgetRepository->getWidgets($tag) as $widget){
+            $result = call_user_func_array(array($widget, "doCall"), $args);
+            if($result instanceof Response){
+                $result = $result->getContent();
             }
-
-            return $this->environment->render("ElendevWidgetBundle:Widget:list.html.twig", array("widgets" => $widgetResults, "tag" => $tag));
-        } else {
-            return $this->environment->render("ElendevWidgetBundle:Widget:asynchronousList.html.twig", array("widgets" => $this->widgetRepository->getWidgets($tag), "tag" => $tag));
+            $widgetResults[] = $result;
         }
+
+        return $this->environment->render("ElendevWidgetBundle:Widget:list.html.twig", array("widgets" => $widgetResults, "tag" => $tag));
+    }
+
+    public function displayAsyncWidgets($tag){
+        if($this->force == 'disabled') {
+            return $this->displayWidgets($tag, func_get_args());
+        }
+
+        $args = func_get_args();
+        array_shift($args);
+
+        return $this->environment->render("ElendevWidgetBundle:Widget:asynchronousList.html.twig", array("widgets" => $this->widgetRepository->getWidgets($tag), "args" => $args, "tag" => $tag));
     }
     
     
@@ -68,6 +69,7 @@ class WidgetExtension extends \Twig_Extension
     public function getFunctions(){
         return array(
             'widgets' => new \Twig_Function_Method($this, 'displayWidgets', array('is_safe' => array('html'))),
+            'widgets_async' => new \Twig_Function_Method($this, 'displayAsyncWidgets', array('is_safe' => array('html'))),
         );
     }
     

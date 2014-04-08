@@ -30,6 +30,6 @@ class ElendevWidgetExtension extends Extension
         $container->setParameter('elendev.widget.annotation.services.scan', $config['scan_services']);
         $container->setParameter('elendev.widget.annotation.widget_directory.scan', $config['scan_widget_directory']);
 
-        $container->setParameter('elendev_widget.hinclude.behavior', $config['hinclude']['behavior']);
+        $container->setParameter('elendev_widget.hinclude.force', $config['hinclude']['force']);
     }
 }
