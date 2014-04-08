@@ -4,6 +4,6 @@ services:
         
     elendev.widget.twig_extension:
         class: Elendev\WidgetBundle\Twig\Extension\WidgetExtension
-        arguments: ["@elendev.widget.widget_repository"]
+        arguments: ["@elendev.widget.widget_repository", '%elendev_widget.hinclude.behavior%']
         tags:
             - { name: twig.extension }

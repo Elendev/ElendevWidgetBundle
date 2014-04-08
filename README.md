@@ -15,7 +15,12 @@ Configuration
     	scan_services:        true # false : don't check annotations on services
     	scan_widget_directory:  true # false : don't scan Widget directory
     	widget_directory:     'Widget' # name of the widget directory at bundle's root
-
+		hinclude:
+			behavior: default_disabled 	# Behavior with hinclude
+										# default_disabled : when 'hinclude' is not set in twig's widgets method second parameter, disable hinclude by default
+										# default_enabled  : when 'hinclude' is not set in twig's widgets method second parameter, enable hinclude by default
+										# force_disabled   : disable hinclude for every widgets
+										# force_enabled    : enable hinclude for every widgets
 Register a new widget
 ---------------------
 A widget is a service method returning simple HTML code.
@@ -46,6 +51,12 @@ Use Twig's extension widget method
 To include widgets in a view you only have to call this method :
 
 `{{ widgets('your_tagname') }}`
+
+It's possible to enable/disable hinclude with the second parameter :
+
+`{{ widgets('your_tagname', true|false) }}`
+
+To enable hinclude, please refer to symfony's documentation : http://symfony.com/doc/current/book/templating.html#asynchronous-content-with-hinclude-js.
 
 You can add multiple widgets emplacements in your project, specifieds by their `tagname`.
 

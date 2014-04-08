@@ -13,12 +13,17 @@ namespace Elendev\WidgetBundle\Widget;
 class WidgetRepository {
     
     private $widgets = array();
-    
+
+    private $widgetUID = 0;
+
+    private $uidWidget = array();
     
     public function registerWidget($service, $method, $tag, $priority = null){
-        
-        $widget = new Widget($service, $method, $tag, $priority);
-        
+        $this->widgetUID ++;
+
+        $widget = new Widget($this->widgetUID, $service, $method, $tag, $priority);
+        $this->uidWidget[$this->widgetUID] = $widget;
+
         if(!array_key_exists($tag, $this->widgets)){
             $this->widgets[$tag] = array();
         }
@@ -36,13 +41,24 @@ class WidgetRepository {
             }
         });
     }
-    
-    
-    
+
+
+    /**
+     * @param $tag
+     * @return Widget[]
+     */
     public function getWidgets($tag){
     	if(!array_key_exists($tag, $this->widgets)){
     		return array();
     	}
         return $this->widgets[$tag];
+    }
+
+    /**
+     * @param $id widget UID
+     * @return Widget
+     */
+    public function getWidget($id) {
+        return $this->uidWidget[$id];
     }
 }

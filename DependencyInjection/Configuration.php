@@ -34,6 +34,14 @@ class Configuration implements ConfigurationInterface
         		->scalarNode('widget_directory')
         			->defaultValue('Widget')
         		->end()
+                ->arrayNode('hinclude')
+                    ->children()
+                        ->enumNode('behavior')
+                            ->values(array('default_disabled', 'force_disabled', 'default_enabled', 'force_enabled'))
+                            ->defaultValue('default_disabled')
+                        ->end()
+                    ->end()
+                ->end()
         	->end();
 
         return $treeBuilder;

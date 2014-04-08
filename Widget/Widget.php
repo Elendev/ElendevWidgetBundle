@@ -11,7 +11,9 @@ namespace Elendev\WidgetBundle\Widget;
  * @author jonas
  */
 class Widget {
-    
+
+    private $uid;
+
     private $service;
     
     private $method;
@@ -20,7 +22,8 @@ class Widget {
     
     private $priority;
     
-    public function __construct($service, $method, $tag, $priority = null){
+    public function __construct($uid, $service, $method, $tag, $priority = null){
+        $this->uid = $uid;
         $this->service = $service;
         $this->method = $method;
         $this->tag = $tag;
@@ -63,5 +66,19 @@ class Widget {
         $this->priority = $priority;
     }
 
+    /**
+     * @param mixed $uid
+     */
+    public function setUid($uid)
+    {
+        $this->uid = $uid;
+    }
 
+    /**
+     * @return mixed
+     */
+    public function getUid()
+    {
+        return $this->uid;
+    }
 }
