@@ -1,0 +1,5 @@
+{% for widget in widgets %}
+<div class="widget">
+    {{render_hinclude(controller('ElendevWidgetBundle:Widget:getWidget', {'widgetId': widget.uid, 'args': args}))}}
+</div>
+{% endfor %}

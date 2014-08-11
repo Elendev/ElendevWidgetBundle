@@ -15,6 +15,11 @@ Configuration
     	scan_services:        true # false : don't check annotations on services
     	scan_widget_directory:  true # false : don't scan Widget directory
     	widget_directory:     'Widget' # name of the widget directory at bundle's root
+		hinclude:
+			force: none              	# Force use of hinclude
+										# none       : use widgets to load synchronous widget, widgets_async to load them asynchronously
+										# enabled    : force widgets method to load asynchronously using hinclude
+										# disabled   : force widgets_asynch method to load synchronously
 
 Register a new widget
 ---------------------
@@ -46,6 +51,13 @@ Use Twig's extension widget method
 To include widgets in a view you only have to call this method :
 
 `{{ widgets('your_tagname') }}`
+
+It's possible to use hinclude :
+
+`{{ widgets_async('your_tagname') }}`
+
+**BE CAREFUL : only scalar parameters can be passed to widgets_async method.**
+To enable hinclude, please refer to symfony's documentation : http://symfony.com/doc/current/book/templating.html#asynchronous-content-with-hinclude-js.
 
 You can add multiple widgets emplacements in your project, specifieds by their `tagname`.
 

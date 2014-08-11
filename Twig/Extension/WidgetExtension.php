@@ -3,15 +3,18 @@
 namespace Elendev\WidgetBundle\Twig\Extension;
 
 use Elendev\WidgetBundle\Widget\WidgetRepository;
+use Symfony\Component\HttpFoundation\Response;
 
 class WidgetExtension extends \Twig_Extension
 {
     
     private $widgetRepository;
     private $environment;
-   
-    public function __construct(WidgetRepository $widgetRepository){
+    private $force;
+
+    public function __construct(WidgetRepository $widgetRepository, $force){
         $this->widgetRepository = $widgetRepository;
+        $this->force = $force;
     }
 
 
@@ -25,17 +28,36 @@ class WidgetExtension extends \Twig_Extension
     }
     
     public function displayWidgets($tag){
-        
+
+        if($this->force == 'enabled') {
+            return $this->displayAsyncWidgets($tag, func_get_args());
+        }
+
         $args = func_get_args();
         array_shift($args);
         array_unshift($args, $this->environment);
         $widgetResults = array();
-        
+
         foreach($this->widgetRepository->getWidgets($tag) as $widget){
-            $widgetResults[] = call_user_func_array(array($widget, "doCall"), $args);
+            $result = call_user_func_array(array($widget, "doCall"), $args);
+            if($result instanceof Response){
+                $result = $result->getContent();
+            }
+            $widgetResults[] = $result;
         }
-        
+
         return $this->environment->render("ElendevWidgetBundle:Widget:list.html.twig", array("widgets" => $widgetResults, "tag" => $tag));
+    }
+
+    public function displayAsyncWidgets($tag){
+        if($this->force == 'disabled') {
+            return $this->displayWidgets($tag, func_get_args());
+        }
+
+        $args = func_get_args();
+        array_shift($args);
+
+        return $this->environment->render("ElendevWidgetBundle:Widget:asynchronousList.html.twig", array("widgets" => $this->widgetRepository->getWidgets($tag), "args" => $args, "tag" => $tag));
     }
     
     
@@ -47,6 +69,7 @@ class WidgetExtension extends \Twig_Extension
     public function getFunctions(){
         return array(
             'widgets' => new \Twig_Function_Method($this, 'displayWidgets', array('is_safe' => array('html'))),
+            'widgets_async' => new \Twig_Function_Method($this, 'displayAsyncWidgets', array('is_safe' => array('html'))),
         );
     }
     
