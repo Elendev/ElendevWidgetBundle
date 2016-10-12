@@ -9,7 +9,6 @@ class WidgetExtension extends \Twig_Extension
 {
     
     private $widgetRepository;
-    private $environment;
     private $force;
 
     public function __construct(WidgetRepository $widgetRepository, $force){
@@ -27,7 +26,7 @@ class WidgetExtension extends \Twig_Extension
         return 'elendev_widget';
     }
     
-    public function displayWidgets($tag){
+    public function displayWidgets(\Twig_Environment $environment, $tag){
 
         if($this->force == 'enabled') {
             return $this->displayAsyncWidgets($tag, func_get_args());
@@ -46,10 +45,10 @@ class WidgetExtension extends \Twig_Extension
             $widgetResults[] = $result;
         }
 
-        return $this->environment->render("ElendevWidgetBundle:Widget:list.html.twig", array("widgets" => $widgetResults, "tag" => $tag));
+        return $environment->render("ElendevWidgetBundle:Widget:list.html.twig", array("widgets" => $widgetResults, "tag" => $tag));
     }
 
-    public function displayAsyncWidgets($tag){
+    public function displayAsyncWidgets(\Twig_Environment $environment, $tag){
         if($this->force == 'disabled') {
             return $this->displayWidgets($tag, func_get_args());
         }
@@ -57,7 +56,7 @@ class WidgetExtension extends \Twig_Extension
         $args = func_get_args();
         array_shift($args);
 
-        return $this->environment->render("ElendevWidgetBundle:Widget:asynchronousList.html.twig", array("widgets" => $this->widgetRepository->getWidgets($tag), "args" => $args, "tag" => $tag));
+        return $environment->render("ElendevWidgetBundle:Widget:asynchronousList.html.twig", array("widgets" => $this->widgetRepository->getWidgets($tag), "args" => $args, "tag" => $tag));
     }
     
     
@@ -68,14 +67,8 @@ class WidgetExtension extends \Twig_Extension
      */
     public function getFunctions(){
         return array(
-            'widgets' => new \Twig_Function_Method($this, 'displayWidgets', array('is_safe' => array('html'))),
-            'widgets_async' => new \Twig_Function_Method($this, 'displayAsyncWidgets', array('is_safe' => array('html'))),
+            new \Twig_SimpleFunction('widgets', [$this, 'displayWidgets'], array('is_safe' => array('html'), 'needs_environment' => true)),
+            new \Twig_SimpleFunction('widgets_async', [$this, 'displayAsyncWidgets'], array('is_safe' => array('html'), 'needs_environment' => true)),
         );
-    }
-    
-    
-
-    public function initRuntime(\Twig_Environment $environment){
-        $this->environment = $environment;
     }
 }
