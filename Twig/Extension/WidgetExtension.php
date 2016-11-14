@@ -33,8 +33,6 @@ class WidgetExtension extends \Twig_Extension
         }
 
         $args = func_get_args();
-        array_shift($args);
-        array_unshift($args, $this->environment);
         $widgetResults = array();
 
         foreach($this->widgetRepository->getWidgets($tag) as $widget){
